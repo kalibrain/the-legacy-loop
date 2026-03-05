@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f7fafc;
+  --foreground: #0f172a;
+  --muted: #475569;
+  --card: #ffffff;
+  --border: #d9e2ec;
+}
+
+body {
+  background: radial-gradient(circle at top right, #eef8ff 0%, #f7fafc 45%);
+  color: var(--foreground);
+}
+
+.card-surface {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(10, 68, 109, 0.08);
+}
