@@ -27,7 +27,7 @@ function SourceSummary({
   total: number;
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+    <div className="rounded-lg border border-brand-200 bg-maize-100/70 px-4 py-3 text-sm font-semibold text-brand-700">
       Source {current} of {total}
     </div>
   );
@@ -89,7 +89,7 @@ export default function SourceDetailsPage() {
 
   if (!isHydrated || redirectPath) {
     return (
-      <div className="card-surface rounded-xl p-6 text-slate-600">
+      <div className="card-surface rounded-xl p-6 text-brand-500">
         Loading source details...
       </div>
     );
@@ -98,16 +98,16 @@ export default function SourceDetailsPage() {
   if (!source || currentIndex === -1) {
     return (
       <div className="card-surface rounded-xl p-6">
-        <h1 className="text-xl font-semibold text-slate-900">
+        <h1 className="font-display text-xl font-semibold text-brand-900">
           Source Not Available
         </h1>
-        <p className="mt-2 text-slate-600">
+        <p className="mt-2 text-brand-500">
           This source is not part of your current selection.
         </p>
         <button
           type="button"
           onClick={() => router.push("/collect")}
-          className="mt-4 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white"
+          className="mt-4 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-maize-50 transition hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maize-400"
         >
           Back to Selection
         </button>
@@ -119,8 +119,8 @@ export default function SourceDetailsPage() {
     <section className="space-y-5">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">{detailTitle}</h1>
-          <p className="mt-2 text-slate-600">
+          <h1 className="font-display text-3xl font-bold text-brand-900">{detailTitle}</h1>
+          <p className="mt-2 text-brand-500">
             Provide required connection details for this data source.
           </p>
         </div>
@@ -186,7 +186,7 @@ export default function SourceDetailsPage() {
           type="button"
           onClick={handleBack}
           aria-label="Go to previous source"
-          className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200"
+          className="rounded-lg border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maize-300"
         >
           Back
         </button>
@@ -194,7 +194,7 @@ export default function SourceDetailsPage() {
           type="button"
           onClick={handleNext}
           aria-label="Continue to next source"
-          className="rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
+          className="rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-maize-50 transition hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maize-400"
         >
           {nextSource ? "Next Source" : "Review & Start Collection"}
         </button>

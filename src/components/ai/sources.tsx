@@ -8,7 +8,7 @@ type SourcesProps = {
 
 export function Sources({ children }: SourcesProps) {
   return (
-    <details className="mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700">
+    <details className="mt-2 rounded-lg border border-brand-100 bg-brand-50/50 px-3 py-2 text-xs text-brand-700">
       {children}
     </details>
   );
@@ -20,7 +20,7 @@ type SourcesTriggerProps = {
 
 export function SourcesTrigger({ count }: SourcesTriggerProps) {
   return (
-    <summary className="cursor-pointer font-medium text-slate-700">
+    <summary className="cursor-pointer font-medium text-brand-700">
       Sources ({count})
     </summary>
   );
@@ -41,9 +41,9 @@ type SourceProps = {
 
 export function Source({ title, type }: SourceProps) {
   return (
-    <li className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-700">
+    <li className="rounded-md border border-brand-100 bg-white px-2 py-1 text-xs text-brand-700">
       {title}
-      {type ? <span className="ml-1 text-slate-500">({type})</span> : null}
+      {type ? <span className="ml-1 text-brand-400">({type})</span> : null}
     </li>
   );
 }

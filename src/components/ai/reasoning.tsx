@@ -8,7 +8,7 @@ type ReasoningProps = {
 
 export function Reasoning({ children }: ReasoningProps) {
   return (
-    <details className="mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700">
+    <details className="mt-2 rounded-lg border border-brand-100 bg-brand-50/50 px-3 py-2 text-xs text-brand-700">
       {children}
     </details>
   );
@@ -20,7 +20,7 @@ type ReasoningTriggerProps = {
 
 export function ReasoningTrigger({ label = "Reasoning" }: ReasoningTriggerProps) {
   return (
-    <summary className="cursor-pointer font-medium text-slate-700">
+    <summary className="cursor-pointer font-medium text-brand-700">
       {label}
     </summary>
   );
@@ -31,5 +31,5 @@ type ReasoningContentProps = {
 };
 
 export function ReasoningContent({ children }: ReasoningContentProps) {
-  return <div className="mt-2 leading-relaxed text-slate-600">{children}</div>;
+  return <div className="mt-2 leading-relaxed text-brand-500">{children}</div>;
 }

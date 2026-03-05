@@ -13,7 +13,7 @@ export function Stepper({ currentPath }: StepperProps) {
 
   return (
     <nav aria-label="Progress" className="mb-8 overflow-x-auto">
-      <ol className="flex min-w-[760px] items-center gap-4 rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-soft">
+      <ol className="flex min-w-[760px] items-center gap-4 rounded-xl border border-brand-200 bg-white/95 px-4 py-4 shadow-soft">
         {FLOW_STEPS.map((step, index) => {
           const isComplete = index < currentIndex;
           const isCurrent = index === currentIndex;
@@ -24,10 +24,10 @@ export function Stepper({ currentPath }: StepperProps) {
                 className={[
                   "inline-flex h-7 w-7 items-center justify-center rounded-full border text-xs font-semibold",
                   isComplete
-                    ? "border-brand-600 bg-brand-600 text-white"
+                    ? "border-brand-600 bg-brand-600 text-maize-100"
                     : isCurrent
-                      ? "border-brand-600 bg-brand-100 text-brand-800"
-                      : "border-slate-300 bg-slate-100 text-slate-500",
+                      ? "border-brand-600 bg-maize-100 text-brand-700"
+                      : "border-brand-100 bg-brand-50 text-brand-400",
                 ].join(" ")}
                 aria-current={isCurrent ? "step" : undefined}
               >
@@ -37,7 +37,7 @@ export function Stepper({ currentPath }: StepperProps) {
                 className={[
                   "text-sm font-medium",
                   isCurrent
-                    ? "text-slate-900"
+                    ? "text-brand-800"
                     : isComplete
                       ? "text-brand-700"
                       : "text-slate-500",

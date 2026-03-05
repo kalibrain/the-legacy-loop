@@ -237,7 +237,7 @@ export default function InterviewPage() {
 
   if (!isHydrated || redirectPath) {
     return (
-      <div className="card-surface rounded-xl p-6 text-slate-600">
+      <div className="card-surface rounded-xl p-6 text-brand-500">
         Loading interview state...
       </div>
     );
@@ -247,8 +247,8 @@ export default function InterviewPage() {
     <section className="grid gap-6 lg:grid-cols-[1fr_280px]">
       <div className="space-y-4">
         <header>
-          <h1 className="text-3xl font-bold text-slate-900">Exit Interview</h1>
-          <p className="mt-2 text-slate-600">
+          <h1 className="font-display text-3xl font-bold text-brand-900">Exit Interview</h1>
+          <p className="mt-2 text-brand-500">
             Questions are based on documents provided by your manager/supervisor
             and the sources collected in this session. Keep responses concrete;
             the assistant will continue guided follow-ups (up to 2 follow-up prompts per topic)
@@ -315,10 +315,10 @@ export default function InterviewPage() {
                 <Message from="assistant">
                   <MessageContent from="assistant">
                     <MessageResponse>
-                      <span className="inline-flex items-center gap-1 text-slate-500">
-                        <span className="h-2 w-2 animate-pulse rounded-full bg-slate-400" />
-                        <span className="h-2 w-2 animate-pulse rounded-full bg-slate-400 [animation-delay:120ms]" />
-                        <span className="h-2 w-2 animate-pulse rounded-full bg-slate-400 [animation-delay:240ms]" />
+                      <span className="inline-flex items-center gap-1 text-brand-500">
+                        <span className="h-2 w-2 animate-pulse rounded-full bg-maize-500" />
+                        <span className="h-2 w-2 animate-pulse rounded-full bg-maize-500 [animation-delay:120ms]" />
+                        <span className="h-2 w-2 animate-pulse rounded-full bg-maize-500 [animation-delay:240ms]" />
                         <span className="ml-2">Assistant is reviewing your response...</span>
                       </span>
                     </MessageResponse>
@@ -326,7 +326,6 @@ export default function InterviewPage() {
                 </Message>
               ) : null}
             </ConversationContent>
-            <ConversationScrollButton />
           </Conversation>
         </div>
 
@@ -343,7 +342,8 @@ export default function InterviewPage() {
               placeholder="Share detailed context, decision logic, and concrete examples..."
             />
           </PromptInputBody>
-          <PromptInputFooter>
+          <PromptInputFooter className="justify-between">
+            <ConversationScrollButton />
             <PromptInputSubmit
               status={status}
               disabled={loadingStart || status === "streaming"}
@@ -353,25 +353,25 @@ export default function InterviewPage() {
       </div>
 
       <aside className="space-y-4">
-        <div className="card-surface rounded-xl p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <div className="card-surface rounded-xl border-brand-200 bg-white/95 p-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-brand-400">
             Interview Progress
           </p>
-          <p className="mt-2 text-xl font-bold text-slate-900">{statusLabel}</p>
-          <div className="mt-4 space-y-2 text-sm text-slate-700">
+          <p className="mt-2 font-display text-xl font-bold text-brand-900">{statusLabel}</p>
+          <div className="mt-4 space-y-2 text-sm text-brand-700">
             <p>
               Completed Questions:{" "}
-              <span className="font-semibold text-slate-900">
+              <span className="font-semibold text-brand-900">
                 {progress.completedCount}
               </span>
             </p>
             <p>
               Total Questions:{" "}
-              <span className="font-semibold text-slate-900">
+              <span className="font-semibold text-brand-900">
                 {Math.max(progress.totalQuestions, 1)}
               </span>
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-brand-500">
               {status === "streaming"
                 ? "Assistant is analyzing your last message..."
                 : "Each topic will include up to 2 guided follow-up prompts before moving forward."}

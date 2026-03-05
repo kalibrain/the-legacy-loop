@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { AppHeader } from "@/components/brand/app-header";
 import { Stepper } from "@/components/stepper";
 
 export function FlowChrome({ children }: { children: React.ReactNode }) {
@@ -9,7 +10,8 @@ export function FlowChrome({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen">
-      <main className="mx-auto max-w-6xl px-4 py-8 md:px-6">
+      <AppHeader />
+      <main className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">
         {showStepper ? <Stepper currentPath={pathname} /> : null}
         {children}
       </main>

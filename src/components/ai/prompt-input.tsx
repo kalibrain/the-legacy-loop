@@ -46,7 +46,7 @@ export function PromptInput({
           onSubmit({ text });
           setText("");
         }}
-        className={`rounded-xl border border-slate-200 bg-white p-3 shadow-soft ${className}`}
+        className={`rounded-xl border border-brand-200 bg-white/95 p-3 shadow-soft ${className}`}
       >
         {children}
       </form>
@@ -72,10 +72,18 @@ export function PromptInputBody({ children }: PromptInputBodyProps) {
 
 type PromptInputFooterProps = {
   children: React.ReactNode;
+  className?: string;
 };
 
-export function PromptInputFooter({ children }: PromptInputFooterProps) {
-  return <div className="mt-3 flex items-center justify-end gap-2">{children}</div>;
+export function PromptInputFooter({
+  children,
+  className = "",
+}: PromptInputFooterProps) {
+  return (
+    <div className={`mt-3 flex items-center justify-end gap-2 ${className}`}>
+      {children}
+    </div>
+  );
 }
 
 type PromptInputTextareaProps = {
@@ -95,7 +103,7 @@ export function PromptInputTextarea({
       onChange={(event) => setText(event.target.value)}
       rows={rows}
       placeholder={placeholder}
-      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200"
+      className="w-full rounded-lg border border-brand-200 bg-white px-3 py-2 text-sm text-brand-900 outline-none placeholder:text-brand-300 focus:border-brand-500 focus:ring-2 focus:ring-maize-300"
       aria-label="Interview chat input"
     />
   );
@@ -117,7 +125,7 @@ export function PromptInputSubmit({
     <button
       type="submit"
       disabled={disabled}
-      className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 disabled:cursor-not-allowed disabled:opacity-60"
+      className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-semibold text-maize-50 transition hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maize-400 disabled:cursor-not-allowed disabled:opacity-60"
       aria-label="Send chat message"
     >
       {currentStatus === "streaming" ? "Thinking..." : "Send"}

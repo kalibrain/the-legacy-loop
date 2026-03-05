@@ -27,10 +27,10 @@ export function MessageContent({
   return (
     <div
       className={[
-        "max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
+        "max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm",
         from === "user"
-          ? "bg-brand-600 text-white"
-          : "border border-slate-200 bg-slate-50 text-slate-900",
+          ? "bg-brand-600 text-maize-50"
+          : "border border-brand-100 bg-brand-50/70 text-brand-800",
         className,
       ].join(" ")}
       {...props}

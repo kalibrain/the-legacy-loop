@@ -9,7 +9,7 @@ export const Conversation = React.forwardRef<HTMLDivElement, ConversationProps>(
     return (
       <div
         ref={ref}
-        className={`relative overflow-y-auto rounded-xl border border-slate-200 bg-white ${className}`}
+        className={`relative overflow-y-auto rounded-xl border border-brand-200 bg-white/95 shadow-soft ${className}`}
         {...props}
       />
     );
@@ -27,10 +27,12 @@ export function ConversationContent({
 
 type ConversationScrollButtonProps = {
   targetId?: string;
+  className?: string;
 };
 
 export function ConversationScrollButton({
   targetId = "interview-conversation",
+  className = "",
 }: ConversationScrollButtonProps) {
   return (
     <button
@@ -40,7 +42,7 @@ export function ConversationScrollButton({
         if (!container) return;
         container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
       }}
-      className="absolute bottom-3 right-3 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm hover:bg-slate-50"
+      className={`rounded-lg border border-brand-200 bg-maize-100 px-3 py-2 text-xs font-semibold text-brand-700 shadow-sm transition hover:bg-maize-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 ${className}`}
       aria-label="Scroll to latest message"
     >
       Latest
