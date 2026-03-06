@@ -139,7 +139,7 @@ export async function generateInterviewQuestions(
       resourceContext.sourceDetails,
     );
 
-    const query = `You are a knowledge transfer specialist helping capture institutional knowledge from a departing employee.
+    const query = `You are a knowledge retention specialist helping capture institutional knowledge from a departing employee.
 
 Preloaded leadership documents on file:
 ${resourceContext.preloadedDocs.map((d) => `- ${d}`).join("\n")}

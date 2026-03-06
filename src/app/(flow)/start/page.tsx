@@ -33,10 +33,10 @@ export default function StartPage() {
   return (
     <section className="animate-hero-enter mx-auto max-w-4xl rounded-2xl border border-brand-200 bg-white/95 p-8 shadow-soft md:p-10">
       <span className="inline-flex rounded-full border border-brand-200 bg-maize-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-brand-700">
-        U-M Knowledge Transfer
+        U-M Knowledge Retention
       </span>
       <h1 className="mt-5 font-display text-3xl font-bold leading-tight text-brand-900 md:text-4xl">
-        Knowledge Transfer for Employee Offboarding
+        Knowledge Retention for Employee Offboarding
       </h1>
       <p className="mt-4 max-w-3xl text-lg text-brand-500">
         Capture undocumented workflows, decisions, and troubleshooting playbooks

@@ -19,7 +19,7 @@ const sourceSans3 = Source_Sans_3({
 
 export const metadata: Metadata = {
   title: "Legacy Loop",
-  description: "AI-powered institutional knowledge transfer prototype",
+  description: "AI-powered institutional knowledge retention prototype",
 };
 
 export default function RootLayout({

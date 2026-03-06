@@ -63,7 +63,7 @@ function buildSystemPrompt(
       ? resourceContext.selectedSources.map((s) => `- ${s}`).join("\n")
       : "- None selected";
 
-  return `You are an expert knowledge transfer interviewer conducting a structured exit interview at the University of Michigan.
+  return `You are an expert knowledge retention interviewer conducting a structured exit interview at the University of Michigan.
 
 Your goal is to extract critical institutional knowledge from the departing employee so their successor can operate effectively from day one.
 

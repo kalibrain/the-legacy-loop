@@ -1,6 +1,6 @@
 # Legacy Loop
 
-Legacy Loop is an AI-powered knowledge transfer application for employee offboarding.
+Legacy Loop is an AI-powered knowledge retention application for employee offboarding.
 
 It helps teams preserve critical institutional knowledge by combining:
 - documents already uploaded by managers/HR/supervisors,

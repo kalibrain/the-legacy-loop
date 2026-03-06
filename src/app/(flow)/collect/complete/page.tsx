@@ -118,7 +118,7 @@ export default function CollectionCompletePage() {
           />
           <span className="text-sm text-brand-700">
             I confirm this selected data can be used to generate AI-powered interview
-            questions for the knowledge transfer capsule.
+            questions for the knowledge retention capsule.
           </span>
         </label>
       </div>

@@ -17,7 +17,7 @@ const TEAMS_CHANNEL_SEEDS = [
   "Incident Response",
   "Data Integrations",
   "Vendor Escalations",
-  "Knowledge Transfer",
+  "Knowledge Retention",
 ];
 
 function hashSeed(input: string): number {
