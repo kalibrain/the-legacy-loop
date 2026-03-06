@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useLegacyLoop } from "@/components/providers/legacy-loop-provider";
 import { useFlowGuard } from "@/hooks/use-flow-guard";
 import { PRELOADED_INTERVIEW_DOCUMENTS } from "@/lib/constants";
@@ -84,12 +84,10 @@ function buildInterviewSummary(messages: InterviewChatMessage[]): InterviewSumma
 
 export default function InterviewPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { state, actions } = useLegacyLoop();
   const { isHydrated, redirectPath } = useFlowGuard();
   const demoRunning = state.demo.running;
   const demoProfile = state.demo.profile;
-  const shouldScrollToBottom = searchParams.get("scroll") === "bottom";
   const demoAnswers = useMemo(
     () => getDemoAnswerSequence(demoProfile),
     [demoProfile],
@@ -102,6 +100,7 @@ export default function InterviewPage() {
   const [error, setError] = useState<string | null>(null);
   const [draftText, setDraftText] = useState("");
   const [readyToFinish, setReadyToFinish] = useState(false);
+  const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
   const [progress, setProgress] = useState({
     completedCount: state.interview.answeredCount,
     totalQuestions: state.interview.totalQuestions,
@@ -114,6 +113,11 @@ export default function InterviewPage() {
   const conversationRef = useRef<HTMLDivElement | null>(null);
   const interviewBottomRef = useRef<HTMLDivElement | null>(null);
   const hasAppliedReturnScrollRef = useRef(false);
+
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    setShouldScrollToBottom(query.get("scroll") === "bottom");
+  }, []);
 
   useEffect(() => {
     if (!conversationRef.current) return;
