@@ -82,7 +82,10 @@ export default function ReviewAndCollectPage() {
       demoTiming?.collectionDurationMs ?? (2000 + Math.floor(Math.random() * 2000));
     const startedAt = Date.now();
     const timer = setInterval(() => {
-      setProgressPercent((prev) => Math.min(95, prev + 5 + Math.random() * 6));
+      setProgressPercent((prev) => {
+        if (prev >= 100) return 100;
+        return Math.min(95, prev + 5 + Math.random() * 6);
+      });
     }, 180);
 
     try {
@@ -129,6 +132,7 @@ export default function ReviewAndCollectPage() {
         await new Promise((resolve) => setTimeout(resolve, minDuration - elapsed));
       }
 
+      clearInterval(timer);
       setProgressPercent(100);
       await new Promise((resolve) => setTimeout(resolve, 260));
       actions.setCollectionComplete(payload.stats);

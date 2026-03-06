@@ -79,7 +79,7 @@ const COMMON_STEP_TIMING = {
   collectSelectionDelayMs: 8000,
   sourceConfigDelayMs: 7000,
   uploadReviewDelayMs: 8000,
-  collectionDurationMs: 30000,
+  collectionDurationMs: 7500,
   consentDelayMs: 7000,
   routeTransitionDelayMs: 2000,
 };
