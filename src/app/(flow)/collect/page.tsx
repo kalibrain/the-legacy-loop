@@ -1,15 +1,17 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { DataSourceCard } from "@/components/data-source-card";
 import { useLegacyLoop } from "@/components/providers/legacy-loop-provider";
 import { DATA_SOURCES } from "@/lib/constants";
+import { getDemoSelectedSources, getDemoTimingProfile } from "@/lib/demo-mode";
 import { DataSourceId } from "@/types/legacy-loop";
 
 export default function CollectPage() {
   const router = useRouter();
   const { state, actions } = useLegacyLoop();
+  const demoAutoStartedRef = useRef(false);
 
   const selectedSet = useMemo(() => new Set(state.selectedSources), [state.selectedSources]);
 
@@ -26,6 +28,23 @@ export default function CollectPage() {
 
   const canContinue = state.selectedSources.length > 0;
   const firstSelected = state.selectedSources[0];
+
+  useEffect(() => {
+    if (!state.demo.running || demoAutoStartedRef.current) return;
+    demoAutoStartedRef.current = true;
+
+    const timing = getDemoTimingProfile(state.demo.profile);
+    const demoSources = getDemoSelectedSources();
+    actions.setSelectedSources(demoSources);
+
+    const timer = window.setTimeout(() => {
+      const firstSource = demoSources[0];
+      if (!firstSource) return;
+      router.push(`/collect/source/${firstSource}`);
+    }, timing.collectSelectionDelayMs);
+
+    return () => window.clearTimeout(timer);
+  }, [actions, router, state.demo.profile, state.demo.running]);
 
   return (
     <section>

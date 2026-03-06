@@ -24,28 +24,3 @@ export function ConversationContent({
 }: ConversationContentProps) {
   return <div className={`space-y-4 p-4 md:p-6 ${className}`} {...props} />;
 }
-
-type ConversationScrollButtonProps = {
-  targetId?: string;
-  className?: string;
-};
-
-export function ConversationScrollButton({
-  targetId = "interview-conversation",
-  className = "",
-}: ConversationScrollButtonProps) {
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        const container = document.getElementById(targetId);
-        if (!container) return;
-        container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
-      }}
-      className={`rounded-lg border border-brand-200 bg-maize-100 px-3 py-2 text-xs font-semibold text-brand-700 shadow-sm transition hover:bg-maize-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 ${className}`}
-      aria-label="Scroll to latest message"
-    >
-      Latest
-    </button>
-  );
-}

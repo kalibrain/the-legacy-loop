@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLegacyLoop } from "@/components/providers/legacy-loop-provider";
 import { useFlowGuard } from "@/hooks/use-flow-guard";
 import { DATA_SOURCES, PRELOADED_INTERVIEW_DOCUMENTS } from "@/lib/constants";
+import { getDemoTimingProfile } from "@/lib/demo-mode";
 import { collectFilesFromSourceDetails } from "@/lib/source-validation";
 import { CollectResponse, SourceConfig } from "@/types/legacy-loop";
 
@@ -48,6 +49,8 @@ export default function ReviewAndCollectPage() {
   const [collectionError, setCollectionError] = useState<string | null>(null);
   const [isCollecting, setIsCollecting] = useState(false);
   const [progressPercent, setProgressPercent] = useState(0);
+  const demoAutoStartedRef = useRef(false);
+  const actionRowRef = useRef<HTMLDivElement | null>(null);
 
   const selectedSources = useMemo(
     () => DATA_SOURCES.filter((source) => state.selectedSources.includes(source.id)),
@@ -66,36 +69,61 @@ export default function ReviewAndCollectPage() {
     return COLLECTION_STEPS[idx];
   }, [progressPercent]);
 
-  const startCollection = async () => {
+  const startCollection = useCallback(async ({ isDemoAuto = false }: { isDemoAuto?: boolean } = {}) => {
     setCollectionError(null);
     setIsCollecting(true);
     setProgressPercent(4);
     actions.setCollectionInProgress(true);
 
-    const minDuration = 2000 + Math.floor(Math.random() * 2000);
+    const demoTiming = state.demo.running
+      ? getDemoTimingProfile(state.demo.profile)
+      : null;
+    const minDuration =
+      demoTiming?.collectionDurationMs ?? (2000 + Math.floor(Math.random() * 2000));
     const startedAt = Date.now();
     const timer = setInterval(() => {
       setProgressPercent((prev) => Math.min(95, prev + 5 + Math.random() * 6));
     }, 180);
 
     try {
-      const response = await fetch("/api/mock/collect", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sources: state.selectedSources,
-          sourceDetails: state.sourceDetails,
-          files: flattenedFiles,
-        }),
+      const body = JSON.stringify({
+        sources: state.selectedSources,
+        sourceDetails: state.sourceDetails,
+        files: flattenedFiles,
       });
 
-      if (!response.ok) {
-        throw new Error("Collection endpoint returned an error.");
+      let payload: CollectResponse | null = null;
+      let lastError: Error | null = null;
+      const maxAttempts = isDemoAuto ? 2 : 1;
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        try {
+          const response = await fetch("/api/mock/collect", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body,
+          });
+
+          if (!response.ok) {
+            throw new Error("Collection endpoint returned an error.");
+          }
+
+          payload = (await response.json()) as CollectResponse;
+          break;
+        } catch (attemptError) {
+          lastError =
+            attemptError instanceof Error
+              ? attemptError
+              : new Error("Collection failed.");
+        }
       }
 
-      const payload = (await response.json()) as CollectResponse;
+      if (!payload) {
+        throw (lastError ?? new Error("Collection failed. Please retry."));
+      }
+
       const elapsed = Date.now() - startedAt;
       if (elapsed < minDuration) {
         await new Promise((resolve) => setTimeout(resolve, minDuration - elapsed));
@@ -107,17 +135,57 @@ export default function ReviewAndCollectPage() {
       router.push("/collect/complete");
     } catch (error) {
       actions.setCollectionInProgress(false);
-      setCollectionError(
+      const message =
         error instanceof Error
           ? error.message
-          : "Collection failed. Please retry.",
-      );
+          : "Collection failed. Please retry.";
+      setCollectionError(message);
+
+      if (isDemoAuto) {
+        actions.stopDemoRun(
+          "Demo collection failed after one retry. Restart the demo manually.",
+        );
+      }
       setIsCollecting(false);
     } finally {
       clearInterval(timer);
       setIsCollecting(false);
     }
-  };
+  }, [
+    actions,
+    flattenedFiles,
+    router,
+    state.demo.profile,
+    state.demo.running,
+    state.selectedSources,
+    state.sourceDetails,
+  ]);
+
+  useEffect(() => {
+    if (!state.demo.running || demoAutoStartedRef.current) return;
+    if (!isHydrated || redirectPath || state.collection.completed || isCollecting) return;
+
+    demoAutoStartedRef.current = true;
+    const timing = getDemoTimingProfile(state.demo.profile);
+    const timer = window.setTimeout(() => {
+      void startCollection({ isDemoAuto: true });
+    }, timing.uploadReviewDelayMs);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    isCollecting,
+    isHydrated,
+    redirectPath,
+    startCollection,
+    state.collection.completed,
+    state.demo.profile,
+    state.demo.running,
+  ]);
+
+  useEffect(() => {
+    if (!isCollecting) return;
+    actionRowRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [collectionStep, isCollecting]);
 
   if (!isHydrated || redirectPath) {
     return (
@@ -224,7 +292,7 @@ export default function ReviewAndCollectPage() {
         </div>
       ) : null}
 
-      <div className="flex items-center justify-between gap-3">
+      <div ref={actionRowRef} className="flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={() => {
@@ -237,7 +305,7 @@ export default function ReviewAndCollectPage() {
         </button>
         <button
           type="button"
-          onClick={startCollection}
+          onClick={() => void startCollection()}
           disabled={isCollecting}
           aria-label="Start collection process"
           className="rounded-lg bg-brand-600 px-6 py-2.5 text-sm font-semibold text-maize-50 transition hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maize-400 disabled:cursor-not-allowed disabled:opacity-60"

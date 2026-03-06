@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
 
 export type PromptInputMessage = {
   text: string;
@@ -20,9 +20,11 @@ const PromptInputContext = createContext<PromptInputContextValue | undefined>(
 
 type PromptInputProps = {
   children: React.ReactNode;
-  onSubmit: (message: PromptInputMessage) => void;
+  onSubmit: (message: PromptInputMessage) => boolean | void | Promise<boolean | void>;
   status?: PromptStatus;
   className?: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
 };
 
 export function PromptInput({
@@ -30,12 +32,25 @@ export function PromptInput({
   onSubmit,
   status = "ready",
   className = "",
+  value,
+  onValueChange,
 }: PromptInputProps) {
-  const [text, setText] = useState("");
+  const [internalText, setInternalText] = useState("");
+  const text = value ?? internalText;
+  const setText = useCallback(
+    (nextValue: string) => {
+      if (onValueChange) {
+        onValueChange(nextValue);
+        return;
+      }
+      setInternalText(nextValue);
+    },
+    [onValueChange],
+  );
 
   const contextValue = useMemo(
     () => ({ text, setText, status }),
-    [status, text],
+    [setText, status, text],
   );
 
   return (
@@ -43,8 +58,15 @@ export function PromptInput({
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          onSubmit({ text });
-          setText("");
+          void Promise.resolve(onSubmit({ text }))
+            .then((shouldClear) => {
+              if (shouldClear !== false) {
+                setText("");
+              }
+            })
+            .catch(() => {
+              // Keep current draft when submission fails.
+            });
         }}
         className={`rounded-xl border border-brand-200 bg-white/95 p-3 shadow-soft ${className}`}
       >
@@ -112,11 +134,13 @@ export function PromptInputTextarea({
 type PromptInputSubmitProps = {
   status?: PromptStatus;
   disabled?: boolean;
+  label?: string;
 };
 
 export function PromptInputSubmit({
   status,
   disabled,
+  label = "Send",
 }: PromptInputSubmitProps) {
   const context = usePromptInputContext();
   const currentStatus = status ?? context.status;
@@ -128,7 +152,7 @@ export function PromptInputSubmit({
       className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-semibold text-maize-50 transition hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maize-400 disabled:cursor-not-allowed disabled:opacity-60"
       aria-label="Send chat message"
     >
-      {currentStatus === "streaming" ? "Thinking..." : "Send"}
+      {currentStatus === "streaming" ? "Thinking..." : label}
     </button>
   );
 }

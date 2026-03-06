@@ -1,15 +1,39 @@
 "use client";
 
-import { FLOW_STEPS } from "@/lib/constants";
+import { useRouter } from "next/navigation";
+import { useLegacyLoop } from "@/components/providers/legacy-loop-provider";
+import { FlowStepId, FLOW_STEPS } from "@/lib/constants";
 import { getStepIdFromPath } from "@/lib/flow-guards";
 
 type StepperProps = {
   currentPath: string;
 };
 
+function getStepTargetPath(stepId: FlowStepId, firstSelectedSource?: string): string {
+  switch (stepId) {
+    case "start":
+      return "/start";
+    case "collect":
+      return "/collect";
+    case "configure":
+      return firstSelectedSource ? `/collect/source/${firstSelectedSource}` : "/collect";
+    case "review":
+      return "/collect/upload";
+    case "interview":
+      return "/interview";
+    case "finish":
+      return "/finish";
+    default:
+      return "/start";
+  }
+}
+
 export function Stepper({ currentPath }: StepperProps) {
+  const router = useRouter();
+  const { state } = useLegacyLoop();
   const currentStepId = getStepIdFromPath(currentPath);
   const currentIndex = FLOW_STEPS.findIndex((step) => step.id === currentStepId);
+  const firstSelectedSource = state.selectedSources[0];
 
   return (
     <nav aria-label="Progress" className="mb-8 overflow-x-auto">
@@ -17,9 +41,17 @@ export function Stepper({ currentPath }: StepperProps) {
         {FLOW_STEPS.map((step, index) => {
           const isComplete = index < currentIndex;
           const isCurrent = index === currentIndex;
+          const isClickable = isComplete;
+          const targetPath = getStepTargetPath(step.id, firstSelectedSource);
+          const itemClasses = [
+            "flex min-w-[110px] items-center gap-3 rounded-md",
+            isClickable
+              ? "cursor-pointer px-1 py-1 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maize-300"
+              : "",
+          ].join(" ");
 
-          return (
-            <li key={step.id} className="flex min-w-[110px] items-center gap-3">
+          const content = (
+            <>
               <span
                 className={[
                   "inline-flex h-7 w-7 items-center justify-center rounded-full border text-xs font-semibold",
@@ -45,6 +77,23 @@ export function Stepper({ currentPath }: StepperProps) {
               >
                 {step.label}
               </span>
+            </>
+          );
+
+          return (
+            <li key={step.id}>
+              {isClickable ? (
+                <button
+                  type="button"
+                  onClick={() => router.push(targetPath)}
+                  className={itemClasses}
+                  aria-label={`Go back to ${step.label}`}
+                >
+                  {content}
+                </button>
+              ) : (
+                <div className={itemClasses}>{content}</div>
+              )}
             </li>
           );
         })}

@@ -9,6 +9,8 @@ export type DataSourceId =
 
 export type DataSourceKind = "drive" | "chat" | "repo" | "upload";
 
+export type DemoProfile = "three-min" | "ten-min";
+
 export type DataSource = {
   id: DataSourceId;
   name: string;
@@ -83,6 +85,11 @@ export type InterviewResourceContext = {
   sourceDetails: Partial<Record<DataSourceId, SourceConfig>>;
 };
 
+export type InterviewDemoMode = {
+  enabled: boolean;
+  profile: DemoProfile;
+};
+
 export type InterviewChatSessionState = {
   sessionId: string;
   questions: Array<{ id: string; text: string }>;
@@ -92,6 +99,7 @@ export type InterviewChatSessionState = {
   resourceContext: InterviewResourceContext;
   followUpCountByQuestion: Record<string, number>;
   done: boolean;
+  demoMode?: InterviewDemoMode;
 };
 
 export type CollectRequest = {
@@ -107,6 +115,7 @@ export type CollectResponse = {
 
 export type InterviewStartRequest = {
   resourceContext: InterviewResourceContext;
+  demoMode?: InterviewDemoMode;
 };
 
 export type InterviewStartResponse = {
@@ -132,7 +141,31 @@ export type InterviewChatResponse = {
   done: boolean;
 };
 
+export type InterviewSessionSnapshotResponse = {
+  sessionId: string;
+  messages: InterviewChatMessage[];
+  currentQuestionId?: string;
+  currentQuestionNumber: number;
+  completedCount: number;
+  totalQuestions: number;
+  done: boolean;
+};
+
+export type InterviewSummaryItem = {
+  questionId: string;
+  questionNumber: number;
+  title: string;
+  question: string;
+  answers: string[];
+};
+
 export type FlowState = {
+  demo: {
+    enabled: boolean;
+    profile: DemoProfile;
+    running: boolean;
+    error?: string;
+  };
   selectedSources: DataSourceId[];
   sourceDetails: Partial<Record<DataSourceId, SourceConfig>>;
   collection: {
@@ -146,5 +179,6 @@ export type FlowState = {
     answeredCount: number;
     totalQuestions: number;
     done: boolean;
+    summary: InterviewSummaryItem[];
   };
 };

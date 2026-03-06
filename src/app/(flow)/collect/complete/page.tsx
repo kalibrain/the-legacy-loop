@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useLegacyLoop } from "@/components/providers/legacy-loop-provider";
 import { DATA_SOURCES } from "@/lib/constants";
+import { getDemoTimingProfile } from "@/lib/demo-mode";
 import { useFlowGuard } from "@/hooks/use-flow-guard";
 import { collectFilesFromSourceDetails } from "@/lib/source-validation";
 
@@ -10,11 +12,34 @@ export default function CollectionCompletePage() {
   const router = useRouter();
   const { state, actions } = useLegacyLoop();
   const { isHydrated, redirectPath } = useFlowGuard();
+  const demoAutoStartedRef = useRef(false);
 
   const selectedSourceNames = DATA_SOURCES.filter((source) =>
     state.selectedSources.includes(source.id),
   ).map((source) => source.name);
   const uploadedFileCount = collectFilesFromSourceDetails(state.sourceDetails).length;
+
+  useEffect(() => {
+    if (!state.demo.running || demoAutoStartedRef.current) return;
+    if (!isHydrated || redirectPath) return;
+
+    demoAutoStartedRef.current = true;
+    const timing = getDemoTimingProfile(state.demo.profile);
+
+    actions.setConsentAccepted(true);
+    const timer = window.setTimeout(() => {
+      router.push("/interview");
+    }, timing.consentDelayMs);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    actions,
+    isHydrated,
+    redirectPath,
+    router,
+    state.demo.profile,
+    state.demo.running,
+  ]);
 
   if (!isHydrated || redirectPath) {
     return (

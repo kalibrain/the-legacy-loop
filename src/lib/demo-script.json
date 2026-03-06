@@ -1,0 +1,68 @@
+{
+  "version": "2026-03-06",
+  "script_name": "legacy-loop-demo-sequences",
+  "items": [
+    {
+      "id": "q1",
+      "question": "Canvas SSO fails because Duo proxy crashed-what do you do?",
+      "answer": "Check monitoring; restart Duo Auth Proxy service; verify failover/LB; confirm Canvas login; capture logs; page IAM on-call if unstable.",
+      "follow_ups": [
+        {
+          "id": "q1a",
+          "question": "Where's the runbook/alerts for this?",
+          "answer": "Team wiki \"SSO/Duo Proxy\" page + the SSO alert dashboard in [MONITORING TOOL]."
+        },
+        {
+          "id": "q1b",
+          "question": "Does this documentation need to be updated for the Okta rollout?",
+          "answer": "No, we're still using Duo for this implementation with plans to update in the summer."
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "question": "Anderson special billing code errors-what's the legacy fix?",
+      "answer": "Grab error + transaction ID; verify billing-code crosswalk/mapping; get Finance approval if code change; update mapping; reprocess the charge."
+    },
+    {
+      "id": "q3",
+      "question": "Who owns Salesforce (ross-admissions) admin access, and how do we request/transfer?",
+      "answer": "Ross Apps Services Salesforce Admin team owns it; request via ticket with manager/product-owner approval; grant via permission sets/groups; remove access on last day."
+    },
+    {
+      "id": "q4",
+      "question": "MiRoss chatbot production dependencies (Slack + LangChain)-what are the main pieces?",
+      "answer": "Slack App/webhook -> bot service -> LangChain (RAG) -> indexed knowledge store -> secrets manager -> logging/monitoring/alerts."
+    },
+    {
+      "id": "q5",
+      "question": "Slate REST API v2 migration-status and next steps?",
+      "answer": "Inventory done + dev proof-of-concept working; next: implement pagination/retries, parallel-run compare, cutover window, update monitoring/runbook."
+    },
+    {
+      "id": "q6",
+      "question": "LMS Integration + Data Warehouse RFPs-top requirements/criteria?",
+      "answer": "Must meet security/FERPA, integrate cleanly, be supportable; pick based on compliance pass, fit, TCO, timeline, references, maintainability."
+    },
+    {
+      "id": "q7",
+      "question": "New data source into Snowflake-process including compliance?",
+      "answer": "Intake + data classification; approvals (data steward/security); build ingestion + quality checks; document/lineage; role-based access; monitor cost/health."
+    },
+    {
+      "id": "q8",
+      "question": "Tier 1 app urgent contacts-who do we call?",
+      "answer": "Use the on-call list: Canvas (Learning Tech/ITS), Salesforce (SF Admin team), Slate (Admissions Systems), Wolverine Access (ITS), Qualtrics (ITS)."
+    },
+    {
+      "id": "q9",
+      "question": "MiRoss v1.3 memory + PII detection-main compliance risks?",
+      "answer": "Risk of storing/echoing sensitive data + imperfect detection; mitigate with short retention, redaction, restricted access, audits, privacy/security review."
+    },
+    {
+      "id": "q10",
+      "question": "Known failure modes + fixes: Slate timeout and Salesforce sandbox conflict?",
+      "answer": "Slate: rate limits/pagination/timeouts-add backoff, incremental sync, retries. Salesforce: sandbox refresh/config drift-use refresh checklist, align connected app, redeploy metadata."
+    }
+  ]
+}

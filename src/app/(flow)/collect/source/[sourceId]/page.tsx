@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useLegacyLoop } from "@/components/providers/legacy-loop-provider";
 import { ChatDetailsForm } from "@/components/source-details/chat-details-form";
@@ -9,6 +9,7 @@ import { RepoDetailsForm } from "@/components/source-details/repo-details-form";
 import { UploadDetailsForm } from "@/components/source-details/upload-details-form";
 import { useFlowGuard } from "@/hooks/use-flow-guard";
 import { DATA_SOURCE_MAP } from "@/lib/constants";
+import { getDemoSourceDetail, getDemoTimingProfile } from "@/lib/demo-mode";
 import { getSourceConfigError } from "@/lib/source-validation";
 import {
   DataSourceId,
@@ -40,6 +41,7 @@ export default function SourceDetailsPage() {
   const { state, actions } = useLegacyLoop();
   const { isHydrated, redirectPath } = useFlowGuard();
   const [error, setError] = useState<string | null>(null);
+  const autoConfiguredSourcesRef = useRef<Set<string>>(new Set());
 
   const source = DATA_SOURCE_MAP[sourceId];
   const selectedSources = state.selectedSources;
@@ -86,6 +88,39 @@ export default function SourceDetailsPage() {
     }
     router.push("/collect");
   };
+
+  useEffect(() => {
+    if (!state.demo.running || !isHydrated || redirectPath) return;
+    if (!source || currentIndex === -1) return;
+    if (autoConfiguredSourcesRef.current.has(source.id)) return;
+
+    const timing = getDemoTimingProfile(state.demo.profile);
+    const demoDetail = getDemoSourceDetail(source.id);
+    if (!demoDetail) return;
+
+    autoConfiguredSourcesRef.current.add(source.id);
+    actions.setSourceDetail(source.id, demoDetail);
+
+    const timer = window.setTimeout(() => {
+      if (nextSource) {
+        router.push(`/collect/source/${nextSource}`);
+        return;
+      }
+      router.push("/collect/upload");
+    }, timing.sourceConfigDelayMs);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    actions,
+    currentIndex,
+    isHydrated,
+    nextSource,
+    redirectPath,
+    router,
+    source,
+    state.demo.profile,
+    state.demo.running,
+  ]);
 
   if (!isHydrated || redirectPath) {
     return (
