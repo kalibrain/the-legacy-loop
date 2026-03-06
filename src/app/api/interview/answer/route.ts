@@ -8,10 +8,6 @@ import { InterviewChatRequest } from "@/types/legacy-loop";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 export async function POST(request: Request) {
   try {
     const payload = (await request.json()) as InterviewChatRequest;
@@ -22,8 +18,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = answerInterviewMessage(payload);
-    await delay(3000);
+    const result = await answerInterviewMessage(payload);
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof SyntaxError) {
@@ -34,9 +29,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    return NextResponse.json(
-      { error: "Failed to process interview answer." },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : "Failed to process interview answer.";
+    console.error("[interview/answer]", message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -186,7 +186,8 @@ export default function InterviewPage() {
       }
 
       if (!response.ok) {
-        throw new Error("Could not send message. Please retry.");
+        const errBody = await response.json().catch(() => ({})) as { error?: string };
+        throw new Error(errBody.error ?? "Could not send message. Please retry.");
       }
 
       const payload = (await response.json()) as InterviewChatResponse;

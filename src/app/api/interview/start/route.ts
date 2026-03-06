@@ -15,7 +15,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = startInterviewSession(payload);
+    const result = await startInterviewSession(payload);
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof SyntaxError) {

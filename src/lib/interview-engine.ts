@@ -1,38 +1,16 @@
-import crypto from "node:crypto";
 import { buildInterviewCitations } from "@/lib/interview-citations";
+import { generateInterviewQuestions } from "@/lib/maizey-client";
+import { generateInterviewResponse } from "@/lib/um-gpt-client";
 import {
   InterviewChatMessage,
   InterviewChatRequest,
   InterviewChatResponse,
   InterviewChatSessionState,
-  InterviewQuestion,
   InterviewStartRequest,
   InterviewStartResponse,
 } from "@/types/legacy-loop";
 
-const BASE_QUESTION_TEXT: string[] = [
-  "What undocumented workflow did you rely on most to keep this project stable?",
-  "Which decision in this system would be easy for a new owner to misinterpret?",
-  "Where did you implement workarounds instead of long-term fixes?",
-];
-
-const SIGNAL_TERMS = [
-  "workflow",
-  "decision",
-  "workaround",
-  "vendor",
-  "timeout",
-  "manual",
-  "incident",
-  "retry",
-  "escalation",
-  "monitor",
-];
-
-const CONCRETE_INDICATOR_REGEX =
-  /(\d+|owner|team|dashboard|log|metric|slack|jira|github|gitlab|runbook|api|on-call|ticket)/i;
-
-const MIN_FOLLOW_UPS_PER_QUESTION = 2;
+const MIN_FOLLOW_UPS_PER_QUESTION = 1;
 const MAX_FOLLOW_UPS_PER_QUESTION = 2;
 
 class InterviewEngineError extends Error {
@@ -57,72 +35,6 @@ if (!globalForInterview.__legacyLoopInterviewSessions) {
   globalForInterview.__legacyLoopInterviewSessions = sessions;
 }
 
-function buildQuestions(): InterviewQuestion[] {
-  return BASE_QUESTION_TEXT.map((text, index) => ({
-    id: `base-${index + 1}`,
-    text,
-    depth: 0 as const,
-  }));
-}
-
-function countWords(text: string): number {
-  return text.trim().split(/\s+/).filter(Boolean).length;
-}
-
-function countSignals(text: string): number {
-  const lower = text.toLowerCase();
-  return SIGNAL_TERMS.filter((term) => lower.includes(term)).length;
-}
-
-function isDetailedEnough(answer: string): boolean {
-  if (countWords(answer) >= 45) return true;
-  if (countSignals(answer) >= 2 && CONCRETE_INDICATOR_REGEX.test(answer)) return true;
-  return false;
-}
-
-function shouldAdvanceQuestion(answer: string, followUpCount: number): boolean {
-  if (followUpCount < MIN_FOLLOW_UPS_PER_QUESTION) {
-    return false;
-  }
-
-  if (followUpCount >= MAX_FOLLOW_UPS_PER_QUESTION) {
-    return true;
-  }
-
-  return isDetailedEnough(answer);
-}
-
-function buildFollowUpPrompt(
-  question: InterviewQuestion,
-  answer: string,
-  followUpRound: number,
-): string {
-  const lower = answer.toLowerCase();
-
-  if (lower.includes("vendor")) {
-    return "Thanks. Can you add a concrete incident example with the first signal you checked and what action you took?";
-  }
-  if (lower.includes("timeout")) {
-    return "Helpful context. Which dashboard/log did you check first, and what threshold triggered manual intervention?";
-  }
-  if (lower.includes("manual")) {
-    return "Please break that manual process into ordered steps and note the most common failure point.";
-  }
-  if (lower.includes("workaround")) {
-    return "What exact condition triggered the workaround, and who should own replacing it with a long-term fix?";
-  }
-
-  if (followUpRound === 1) {
-    return `Please add a concrete example for this topic, including tooling, owner, and the exact decision path you used.`;
-  }
-
-  if (followUpRound === 2) {
-    return `To close this topic, include the trigger signal, your response steps, and what a new owner should watch for first.`;
-  }
-
-  return `Final detail check for "${question.text}": summarize the trigger, action, and expected outcome.`;
-}
-
 function makeMessage(
   role: InterviewChatMessage["role"],
   content: string,
@@ -134,7 +46,7 @@ function makeMessage(
   },
 ): InterviewChatMessage {
   return {
-    id: crypto.randomUUID(),
+    id: globalThis.crypto.randomUUID(),
     role,
     content,
     createdAt: new Date().toISOString(),
@@ -145,34 +57,43 @@ function makeMessage(
   };
 }
 
-function makeQuestionPrompt(question: InterviewQuestion, questionNumber: number, total: number): string {
-  return `Question ${questionNumber} of ${total}: ${question.text}`;
+function makeQuestionPrompt(questionText: string, questionNumber: number, total: number): string {
+  return `Question ${questionNumber} of ${total}: ${questionText}`;
 }
 
-export function startInterviewSession(input: InterviewStartRequest): InterviewStartResponse {
+export async function startInterviewSession(
+  input: InterviewStartRequest,
+): Promise<InterviewStartResponse> {
   if (!input?.resourceContext) {
     throw new InterviewEngineError("resourceContext is required.", 400);
   }
 
-  const sessionId = crypto.randomUUID();
-  const questions = buildQuestions();
+  // Generate personalized questions via Maizey RAG
+  const questionTexts = await generateInterviewQuestions(input.resourceContext);
+
+  const sessionId = globalThis.crypto.randomUUID();
+  const questions = questionTexts.map((text, index) => ({
+    id: `q-${index + 1}`,
+    text,
+  }));
+
   const firstQuestion = questions[0];
 
   const initialAssistantMessage = makeMessage(
     "assistant",
-    makeQuestionPrompt(firstQuestion, 1, questions.length),
+    makeQuestionPrompt(firstQuestion.text, 1, questions.length),
     firstQuestion.id,
     1,
     {
       reasoningSummary:
-        "Starting with foundational context to capture undocumented workflows and ownership details.",
+        "Questions were generated by the Maizey RAG knowledge base using your selected data sources and preloaded leadership documents.",
       citations: buildInterviewCitations(input.resourceContext, firstQuestion.text, ""),
     },
   );
 
   const session: InterviewChatSessionState = {
     sessionId,
-    questions: questions.map((question) => ({ id: question.id, text: question.text })),
+    questions,
     currentQuestionIndex: 0,
     completedQuestionIds: [],
     messages: [initialAssistantMessage],
@@ -193,7 +114,9 @@ export function startInterviewSession(input: InterviewStartRequest): InterviewSt
   };
 }
 
-export function answerInterviewMessage(input: InterviewChatRequest): InterviewChatResponse {
+export async function answerInterviewMessage(
+  input: InterviewChatRequest,
+): Promise<InterviewChatResponse> {
   const session = sessions.get(input.sessionId);
   if (!session) {
     throw new InterviewEngineError("Session not found. Restart interview.", 404);
@@ -225,37 +148,35 @@ export function answerInterviewMessage(input: InterviewChatRequest): InterviewCh
   }
 
   const questionNumber = session.currentQuestionIndex + 1;
-  const userMessage = makeMessage(
-    "user",
-    userText,
-    currentQuestion.id,
-    questionNumber,
-  );
+  const userMessage = makeMessage("user", userText, currentQuestion.id, questionNumber);
   session.messages.push(userMessage);
 
   const followUpCount = session.followUpCountByQuestion[currentQuestion.id] ?? 0;
-  const detailedEnough = shouldAdvanceQuestion(userText, followUpCount);
 
-  if (!detailedEnough) {
-    const nextFollowUpCount = followUpCount + 1;
-    session.followUpCountByQuestion[currentQuestion.id] = nextFollowUpCount;
+  // Force advance after MAX_FOLLOW_UPS regardless of GPT decision
+  const forceAdvance = followUpCount >= MAX_FOLLOW_UPS_PER_QUESTION;
+
+  // Call U-M GPT Toolkit for real-time response generation
+  const turn = await generateInterviewResponse(
+    session.messages,
+    currentQuestion.text,
+    questionNumber,
+    session.questions.length,
+    session.resourceContext,
+  );
+
+  const shouldAdvance = forceAdvance || (followUpCount >= MIN_FOLLOW_UPS_PER_QUESTION && turn.advance);
+
+  if (!shouldAdvance) {
+    session.followUpCountByQuestion[currentQuestion.id] = followUpCount + 1;
 
     const assistantMessage = makeMessage(
       "assistant",
-      buildFollowUpPrompt(
-        {
-          id: currentQuestion.id,
-          text: currentQuestion.text,
-          depth: 0,
-        },
-        userText,
-        nextFollowUpCount,
-      ),
+      turn.message,
       currentQuestion.id,
       questionNumber,
       {
-        reasoningSummary:
-          "I’m continuing this topic to capture concrete handoff details before moving to the next area.",
+        reasoningSummary: turn.reasoning,
         citations: buildInterviewCitations(
           session.resourceContext,
           currentQuestion.text,
@@ -263,7 +184,6 @@ export function answerInterviewMessage(input: InterviewChatRequest): InterviewCh
         ),
       },
     );
-
     session.messages.push(assistantMessage);
 
     return {
@@ -276,6 +196,7 @@ export function answerInterviewMessage(input: InterviewChatRequest): InterviewCh
     };
   }
 
+  // Advance to next question
   if (!session.completedQuestionIds.includes(currentQuestion.id)) {
     session.completedQuestionIds.push(currentQuestion.id);
   }
@@ -287,12 +208,12 @@ export function answerInterviewMessage(input: InterviewChatRequest): InterviewCh
     session.done = true;
     const assistantMessage = makeMessage(
       "assistant",
-      "Thanks for the detailed responses. This completes the interview, and your knowledge capsule is now ready for handoff.",
+      turn.message ||
+        "Thanks for the detailed responses. This completes the interview, and your knowledge capsule is now ready for handoff.",
       currentQuestion.id,
       questionNumber,
       {
-        reasoningSummary:
-          "All core interview topics have enough detail for transfer readiness.",
+        reasoningSummary: turn.reasoning || "All core interview topics have enough detail for transfer readiness.",
         citations: buildInterviewCitations(
           session.resourceContext,
           currentQuestion.text,
@@ -312,22 +233,17 @@ export function answerInterviewMessage(input: InterviewChatRequest): InterviewCh
 
   session.currentQuestionIndex = nextQuestionIndex;
   const nextQuestion = session.questions[nextQuestionIndex];
+
+  const transitionMessage = `${turn.message ? `${turn.message} ` : "Thanks, that level of detail is helpful. "}${makeQuestionPrompt(nextQuestion.text, nextQuestionIndex + 1, session.questions.length)}`;
+
   const assistantMessage = makeMessage(
     "assistant",
-    `Thanks, that level of detail is helpful. ${makeQuestionPrompt(
-      {
-        id: nextQuestion.id,
-        text: nextQuestion.text,
-        depth: 0,
-      },
-      nextQuestionIndex + 1,
-      session.questions.length,
-    )}`,
+    transitionMessage,
     nextQuestion.id,
     nextQuestionIndex + 1,
     {
       reasoningSummary:
-        "Your response was specific enough to close the previous topic, so I moved to the next transfer area.",
+        turn.reasoning || "Sufficient detail captured for this topic, moving to the next area.",
       citations: buildInterviewCitations(
         session.resourceContext,
         nextQuestion.text,
